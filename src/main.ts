@@ -44,8 +44,8 @@ const voiceState = $('#voice-state');
 const voiceDetail = $('#voice-detail');
 const voiceError = $('#voice-error');
 const voiceMeta = $('#voice-meta');
-const btnStart = $('#btn-start');
-const btnEnd = $('#btn-end');
+const btnStart = $<HTMLButtonElement>('#btn-start');
+const btnEnd = $<HTMLButtonElement>('#btn-end');
 
 // ── Tabs ──
 document.querySelectorAll('.tab').forEach(tab => {
