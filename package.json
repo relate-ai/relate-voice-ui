@@ -1,0 +1,17 @@
+{
+  "name": "relate-livekit-voice-ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "livekit-client": "2.22.2"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.9",
+    "typescript": "7.0.2"
+  }
+}
