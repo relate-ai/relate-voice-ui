@@ -11,55 +11,11 @@ FROM nginx:1.27.3-alpine
 RUN rm -rf /usr/share/nginx/html/*
 COPY --from=web-build /build/dist /usr/share/nginx/html
 COPY <<'NGINX_CONF' /tmp/default.conf
-resolver 127.0.0.11 valid=5s;
-
-upstream voice_platform {
-    server 37.60.235.136:443 max_fails=3 fail_timeout=10s;
-    keepalive 32;
-}
-
 server {
     listen 8080;
     server_name _;
     root /usr/share/nginx/html;
     index index.html;
-    client_max_body_size 1m;
-
-    location = /api/healthz {
-        proxy_pass https://voice_platform/api/healthz;
-        proxy_ssl_server_name on;
-        proxy_ssl_name voice-api.relate-ai.site;
-        proxy_connect_timeout 10s;
-        proxy_read_timeout 10s;
-        proxy_next_upstream error timeout;
-    }
-
-    location = /api/diag {
-        proxy_pass https://voice_platform/api/diag;
-        proxy_ssl_server_name on;
-        proxy_ssl_name voice-api.relate-ai.site;
-        proxy_connect_timeout 10s;
-        proxy_read_timeout 10s;
-        proxy_next_upstream error timeout;
-    }
-
-    location /api/ {
-        proxy_pass https://voice_platform;
-        proxy_ssl_server_name on;
-        proxy_ssl_name voice-api.relate-ai.site;
-        proxy_set_header Host $proxy_host;
-        proxy_connect_timeout 10s;
-        proxy_read_timeout 10s;
-        proxy_next_upstream error timeout;
-        proxy_next_upstream_tries 2;
-        proxy_http_version 1.1;
-        proxy_set_header Connection "";
-        proxy_buffer_size 4k;
-        proxy_buffers 8 4k;
-        proxy_busy_buffers_size 8k;
-        proxy_temp_path /tmp/nginx_proxy 1 2;
-    }
-
     location /assets/ {
         alias /usr/share/nginx/html/assets/;
         try_files $uri =404;

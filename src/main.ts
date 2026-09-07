@@ -1,24 +1,32 @@
 import { ConnectionState, Room, RoomEvent, Track } from 'livekit-client';
+import { loadRuntimeConfig } from './runtime-config';
+
+const runtimeConfig = loadRuntimeConfig();
+
+async function apiUrl(path: string): Promise<string> {
+  const { apiBaseUrl } = await runtimeConfig;
+  return new URL(path, `${apiBaseUrl}/`).toString();
+}
 
 // ── API Client ──
 const API = {
   async get<T>(path: string): Promise<T> {
-    const r = await fetch(path, { credentials: 'same-origin' });
+    const r = await fetch(await apiUrl(path), { credentials: 'same-origin' });
     if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
     return r.json();
   },
   async post<T>(path: string, body?: unknown): Promise<T> {
-    const r = await fetch(path, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+    const r = await fetch(await apiUrl(path), { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
     if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `${r.status}`); }
     return r.json();
   },
   async patch<T>(path: string, body: unknown): Promise<T> {
-    const r = await fetch(path, { method: 'PATCH', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const r = await fetch(await apiUrl(path), { method: 'PATCH', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `${r.status}`); }
     return r.json();
   },
   async del<T>(path: string): Promise<T> {
-    const r = await fetch(path, { method: 'DELETE', credentials: 'same-origin' });
+    const r = await fetch(await apiUrl(path), { method: 'DELETE', credentials: 'same-origin' });
     if (!r.ok) throw new Error(`${r.status}`);
     return r.json();
   },
@@ -251,7 +259,7 @@ $('#btn-export-agent').addEventListener('click', async () => {
   const id = ($('#edit-agent-id') as HTMLInputElement).value;
   if (!id) return;
   try {
-    const r = await fetch(`/api/agents/${id}/export`, { credentials: 'same-origin' });
+    const r = await fetch(await apiUrl(`/api/agents/${id}/export`), { credentials: 'same-origin' });
     const blob = await r.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `${id}.relate-agent.zip`; a.click();
@@ -267,7 +275,7 @@ $('#import-file-input').addEventListener('change', async (e) => {
   if (!file) return;
   const fd = new FormData(); fd.append('file', file);
   try {
-    const r = await fetch('/api/agents/import', { method: 'POST', credentials: 'same-origin', body: fd });
+    const r = await fetch(await apiUrl('/api/agents/import'), { method: 'POST', credentials: 'same-origin', body: fd });
     if (!r.ok) { const err = await r.json().catch(() => ({})); throw new Error(err.detail || 'Import failed'); }
     const result = await r.json();
     toast(`Imported: ${result.agent_id}`);
